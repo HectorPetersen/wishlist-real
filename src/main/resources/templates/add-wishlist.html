@@ -1,10 +1,73 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="da" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Wishlist - Tilføj ønskeliste</title>
 </head>
 <body>
+<div>
+
+    <br>
+    <h1>Tilføj ønskeliste</h1>
+    <br>
+
+    <form th:action="@{/save}" method="post" th:object="${wishlist}">
+        <input type="hidden" th:field="*{userId}" />
+
+        <div>
+            <label>Navn:</label>
+            <input type="text" th:field="*{name}" required />
+        </div>
+
+        <h3>Ønsker</h3>
+
+        <div id="wishes-container">
+            <div th:each="wish, iterStat : *{wishes}">
+                <input type="text"
+                       th:name="'wishes[' + ${iterStat.index} + '].name'"
+                       th:value="${wish.name}"
+                       placeholder="Ønske"
+                       required />
+            </div>
+        </div>
+
+        <button type="button" onclick="addWish()">Tilføj ønske</button>
+        <button type="submit">Gem</button>
+    </form>
+
+<!--    100% Rezas kone-->
+    <script>
+        function addWish() {
+            const container = document.getElementById('wishes-container');
+            const inputs = container.querySelectorAll('input[type="text"]');
+
+            if (inputs.length > 0) {
+                const lastInput = inputs[inputs.length - 1];
+                if (lastInput.value.trim() === '') {
+                    lastInput.focus();
+                    lastInput.style.border = '2px solid red';
+                    return;
+                }
+            }
+
+            const index = inputs.length;
+            const div = document.createElement('div');
+            const input = document.createElement('input');
+
+            input.type = 'text';
+            input.name = `wishes[${index}].name`;
+            input.placeholder = 'Ønske';
+
+            input.addEventListener('input', () => {
+                input.style.border = '';
+            });
+
+            div.appendChild(input);
+            container.appendChild(div);
+        }
+    </script>
+</div>
+
 
 </body>
 </html>

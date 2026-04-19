@@ -4,25 +4,33 @@ import java.util.List;
 
 public class Wishlist {
 
-    private int ID = 0;
+    private int id;
     private String name;
-    private List<Wish> wishlist;
+    private int userId;
+    private List<Wish> wishes;
 
     public Wishlist() {
     }
 
-    public Wishlist(int ID, List<Wish> wishlist, String name) {
-        this.ID = ID;
-        this.wishlist = wishlist;
+    public Wishlist(int id, String name, int userId) {
+        this.id = id;
         this.name = name;
+        this.userId = userId;
     }
 
-    public int getID() {
-        return ID;
+    public Wishlist(int id, String name, int userId, List<Wish> wishes) {
+        this.id = id;
+        this.name = name;
+        this.userId = userId;
+        this.wishes = wishes;
     }
 
-    public void setID(int ID) {
-        this.ID = ID;
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -33,11 +41,19 @@ public class Wishlist {
         this.name = name;
     }
 
-    public List<Wish> getWishlist() {
-        return wishlist;
+    public int getUserId() {
+        return userId;
     }
 
-    public void setWishlist(List<Wish> wishlist) {
-        this.wishlist = wishlist;
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
+    public List<Wish> getWishes() {
+        return wishes;
+    }
+
+    public void setWishes(List<Wish> wishes) {
+        this.wishes = wishes;
     }
 }

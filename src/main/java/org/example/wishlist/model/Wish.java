@@ -2,27 +2,31 @@ package org.example.wishlist.model;
 
 public class Wish {
 
-    private int ID;
-    private String name;
+    private int id;
+    private String link;
 
-    public Wish(int ID, String name) {
-        this.ID = ID;
-        this.name = name;
+    public Wish() {
     }
 
-    public String getName() {
-        return name;
+    public Wish(int id, String link) {
+        this.id = id;
+        this.link = link;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public int getId() {
+        return id;
     }
 
-    public int getID() {
-        return ID;
+    public void setId(int id) {
+        this.id = id;
     }
 
-    public void setID(int ID) {
-        this.ID = ID;
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
     }
 }
+
