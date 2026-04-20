@@ -216,6 +216,48 @@ public class WishlistRepository {
                 " WHERE user.id = ?";
         template.update(sql, user.getId());
     }
+
+    public void updateWishlist(String username, Wishlist wishlist) {
+        final String userSql = """
+            SELECT id FROM users WHERE username = ?
+            """;
+
+        Integer userId = template.queryForObject(userSql, Integer.class, username);
+        final String checkSql = """
+            SELECT COUNT(*) FROM wishlist
+            WHERE user_id = ? AND name = ? AND id <> ?
+            """;
+
+        Integer count = template.queryForObject(
+                checkSql,
+                Integer.class,
+                userId,
+                wishlist.getName(),
+                wishlist.getId()
+        );
+
+        if (count != null && count > 0) {
+            throw new RuntimeException("Wishlist name already exists for this user");
+        }
+
+
+        final String updateSql = """
+            UPDATE wishlist
+            SET name = ?
+            WHERE id = ? AND user_id = ?
+            """;
+
+        int rowsAffected = template.update(
+                updateSql,
+                wishlist.getName(),
+                wishlist.getId(),
+                userId
+        );
+
+        if (rowsAffected == 0) {
+            throw new RuntimeException("Wishlist not found or not owned by user");
+        }
+    }
 }
 
 //aa
