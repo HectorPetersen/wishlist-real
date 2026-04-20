@@ -211,6 +211,11 @@ public class WishlistRepository {
 
         return template.query(sql, rowMapper, wishlist.getId());
     }
+    public void deleteUser (User user){
+        String sql = "DELTE *FROM users " +
+                " WHERE user.id = ?";
+        template.update(sql, user.getId());
+    }
 }
 
 //aa
