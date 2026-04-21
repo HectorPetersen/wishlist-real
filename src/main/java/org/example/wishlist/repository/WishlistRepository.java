@@ -47,31 +47,33 @@ public class WishlistRepository {
     }
 
     public void saveWish(Wish wish, int wishlistId) {
-        if (wish.getName() == null) {
-            throw new InvalidInputException("Name of wish cannot be null");
-        }
-
         wish.setName(wish.getName().trim());
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
         final String insertWishSql = """
                 INSERT INTO wish (link, name, price)
                 VALUES (?, ?, ?)
                 """;
+
         final String insertWishlistWish = """
                 INSERT INTO wishlist_wish (wishlist_id, wish_id)
                 VALUES (?, ?)
                 """;
 
-        final KeyHolder keyHolder = new GeneratedKeyHolder();
         template.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(insertWishSql, Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement ps = connection.prepareStatement(
+                    insertWishSql,
+                    Statement.RETURN_GENERATED_KEYS
+            );
             ps.setString(1, wish.getLink());
             ps.setString(2, wish.getName());
             ps.setDouble(3, wish.getPrice());
             return ps;
         }, keyHolder);
-        wish.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
+        int wishId = Objects.requireNonNull(keyHolder.getKey()).intValue();
+        wish.setId(wishId);
 
-        template.update(insertWishlistWish, wishlistId, wish.getId());
+        template.update(insertWishlistWish, wishlistId, wishId);
     }
 
     public boolean deleteWishlist(Wishlist wishlist) {
