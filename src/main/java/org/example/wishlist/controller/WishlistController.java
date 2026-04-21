@@ -34,9 +34,12 @@ public class WishlistController {
         return session.getAttribute("user") != null;
     }
 
-    @GetMapping("/html")
-    public String page() {
-        return "Login-page";
+    @GetMapping("/inspiration")
+    public String inspirationPage(HttpSession session, Model model) {
+        if (isLoggedIn(session)) {
+            model.addAttribute("isLoggedIn", true);
+        }
+        return "gave-inspiration";
     }
 
     @GetMapping("/login")
@@ -62,12 +65,6 @@ public class WishlistController {
         }
     }
 
-//    @PostMapping("/forgot-password")
-//    public String forgotCredentials(@RequestAttribute String email) {
-//        service.forgotCredentials(email);
-//        return "redirect:/login";
-
-
     @GetMapping("/register")
     public String regiserPage(Model model) {
         model.addAttribute("user", new User());
@@ -87,23 +84,17 @@ public class WishlistController {
         }
     }
 
-    // en forside?
-    @GetMapping()
-    public String frontPage(HttpSession session) {
-        return "front-page";
-    }
-
     // returnere alle ønskelister fra en bruger?
     @GetMapping("/{username}")
     public String findUsersWishlists(@PathVariable String username, Model model, HttpSession session) {
-        if (isLoggedIn(session)) {
-            var loggedInUser = (User) session.getAttribute("user");
-            var wishlists = service.findUsersWishlists(loggedInUser.getUsername());
-            model.addAttribute("wishlists", wishlists);
-            model.addAttribute("user", loggedInUser);
-            return "user-wishlists";
+        if (!isLoggedIn(session)) {
+            return "redirect:/login";
         }
-        return "redirect:/login";
+        var loggedInUser = (User) session.getAttribute("user");
+        var wishlists = service.findUsersWishlists(loggedInUser.getUsername());
+        model.addAttribute("wishlists", wishlists);
+        model.addAttribute("user", loggedInUser);
+        return "user-wishlists";
     }
 
     // returnere specifik wishlist fra specifik bruger?

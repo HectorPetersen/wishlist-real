@@ -1,7 +1,6 @@
 DROP SCHEMA IF EXISTS wishlist;
 CREATE SCHEMA wishlist;
-USE
-wishlist;
+USE wishlist;
 
 CREATE TABLE users
 (
