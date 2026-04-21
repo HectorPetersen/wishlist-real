@@ -5,7 +5,7 @@
     <title>Wishlist - Login</title>
 </head>
 <body>
-<form th:action="@{/login}" method="post" th:object="${user}">
+<form th:action="@{/Login}" method="post" th:object="${user}">
 
     <div>
         <label for="username">Brugernavn:</label>
@@ -22,7 +22,7 @@
         <input type="email" th:field="*{email}" id="email" required/>
     </div>
 
-    <button type="submit">Opret bruger</button>
+    <button type="submit">Login</button>
 
 </form>
 
