@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <title>Wishlist</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Top bar */
+        .topbar {
+            border-bottom: 2px solid black;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .topbar h1 {
+            margin: 0;
+        }
+
+        .top-buttons {
+            position: absolute;
+            right: 10px;
+        }
+
+        .top-buttons button {
+            margin-left: 10px;
+            padding: 5px 10px;
+        }
+
+        /* Layout */
+        .container {
+            display: flex;
+            padding: 20px;
+        }
+
+        .left {
+            flex: 2;
+            margin-right: 20px;
+        }
+
+        .right {
+            flex: 1;
+        }
+
+        .box {
+            border: 2px solid black;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 150px;
+        }
+
+        .big-box {
+            height: 300px;
+        }
+
+        .button-big {
+            margin-top: 20px;
+            padding: 15px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+    <h1>Wishlist</h1>
+    <div class="top-buttons">
+        <button>Opret</button>
+        <button>Login</button>
+    </div>
+</div>
+
+<!-- Main content -->
+<div class="container">
+
+    <!-- Left side -->
+    <div class="left">
+        <div class="box big-box">
+            <h2>Opret:</h2>
+            <button class="button-big">Opret nu!</button>
+        </div>
+    </div>
+
+    <!-- Right side -->
+    <div class="right">
+        <div class="box">
+            <h3>Gave Ideer</h3>
+        </div>
+
+        <div class="box">
+            <h3>Partnere</h3>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
