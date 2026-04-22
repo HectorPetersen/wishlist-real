@@ -3,17 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>Wishlist - Login</title>
-    <link rel="stylesheet" href="static/login-page.css">
+    <link rel="stylesheet" href="/login-page.css">
 </head>
 <body>
-<form th:action="@{/login}" method="post" th:object="${user}">
-
-    <!--    <div>-->
-    <!--        <label for="username">Brugernavn:</label>-->
-    <!--        <input type="text" th:field="*{username}" id="username" required/>-->
-    <!--    </div>-->
+<form th:action="@{/wishlist/login}" method="post">
     <h1>Login</h1>
-    <a href="index.html" class="home">Gå tilbage</a>
+    <div th:if="${wrongCredentials}" style="color: red;">
+        Forkert brugernavn eller adgangskode.
+    </div>
+    <a href="/wishlist/" class="home">Gå tilbage</a>
 
     <div>
         <label for="username">Brugernavn:</label>
@@ -28,7 +26,10 @@
 
     <button type="submit">Login</button>
     <button>Glemt kode</button>
-
+    <button type="button"
+            onclick="window.location.href='/wishlist/register'">
+        Opret bruger
+    </button>
 
 </form>
 

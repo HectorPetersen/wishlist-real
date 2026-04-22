@@ -23,6 +23,7 @@ input {
     margin-bottom: 10px;
     border-radius: 5px;
     border: 1px solid #aaa;
+    box-sizing: border-box;
 }
 
 /* KNAPPER */
@@ -37,6 +38,7 @@ button {
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    box-sizing: border-box;
 }
 
 button:hover {

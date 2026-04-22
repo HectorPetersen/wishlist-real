@@ -1,5 +1,7 @@
 package org.example.wishlist.controller;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,15 +15,12 @@ import org.example.wishlist.model.Wishlist;
 import org.example.wishlist.service.WishlistService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpSession;
 
 @Controller
+@RequestMapping("/wishlist")
 public class WishlistController {
 
     private final WishlistService service;
@@ -30,8 +29,9 @@ public class WishlistController {
         this.service = service;
     }
 
-    private boolean isLoggedIn(HttpSession session) {
-        return session.getAttribute("user") != null;
+    @GetMapping({"", "/"})
+    public String index() {
+        return "index";
     }
 
     @GetMapping("/inspiration")
@@ -42,13 +42,19 @@ public class WishlistController {
         return "gave-inspiration";
     }
 
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        session.invalidate();
+        return "redirect:/wishlist/";
+    }
+
     @GetMapping("/login")
     public String loginPage(HttpSession session) {
         if (isLoggedIn(session)) {
             var user = (User) session.getAttribute("user");
-            return "redirect:/" + user.getUsername();
+            return "redirect:/wishlist/" + user.getUsername();
         }
-        return "login-page"; // udfyld form med thymeleaf og submit til /login postmap
+        return "login-page";
     }
 
     @PostMapping("/login")
@@ -57,8 +63,7 @@ public class WishlistController {
         try {
             var user = service.userLogin(username, password);
             session.setAttribute("user", user);
-            session.setMaxInactiveInterval(30);
-            return "redirect:/" + username;
+            return "redirect:/wishlist/" + username;
         } catch (Exception e) {
             model.addAttribute("wrongCredentials", true);
             return "login-page";
@@ -66,42 +71,41 @@ public class WishlistController {
     }
 
     @GetMapping("/register")
-    public String regiserPage(Model model) {
+    public String registerPage(Model model) {
         model.addAttribute("user", new User());
-        return "register-page"; // udfyld form med thymeleaf og submit til /register postmap
+        return "register-page";
     }
 
     @PostMapping("/register")
     public String register(@ModelAttribute User user, HttpSession session, Model model) {
         try {
-            var registeredUser = service.registerUser(user);
+            final var registeredUser = service.registerUser(user);
             session.setAttribute("user", registeredUser);
-            session.setMaxInactiveInterval(300);
-            return "redirect:/" + registeredUser.getUsername();
+            return "redirect:/wishlist/" + registeredUser.getUsername();
         } catch (InvalidInputException | UserAlreadyExistsException e) {
-            model.addAttribute("wrongCredentials", true);
+            model.addAttribute("registrationError", true);
             return "register-page";
         }
     }
 
-    // returnere alle ønskelister fra en bruger?
     @GetMapping("/{username}")
     public String findUsersWishlists(@PathVariable String username, Model model, HttpSession session) {
-        if (!isLoggedIn(session)) {
-            return "redirect:/login";
+        if (isOwner(session, username)) {
+            model.addAttribute("isOwner", true);
         }
-        var loggedInUser = (User) session.getAttribute("user");
-        var wishlists = service.findUsersWishlists(loggedInUser.getUsername());
+
+        var wishlists = service.findUsersWishlists(username);
         model.addAttribute("wishlists", wishlists);
-        model.addAttribute("user", loggedInUser);
+        model.addAttribute("username", username);
         return "user-wishlists";
     }
 
-    // returnere specifik wishlist fra specifik bruger?
     @GetMapping("/{username}/{wishlistName}")
     public String findWishlist(@PathVariable String username,
-                               @PathVariable String wishlistName, Model model) {
+                               @PathVariable String wishlistName, Model model, HttpSession session) {
         model.addAttribute("wishlist", service.findWishlist(username, wishlistName));
+        model.addAttribute("username", username);
+        model.addAttribute("isOwner", isOwner(session, username));
         return "user-wishlist";
     }
 
@@ -114,22 +118,24 @@ public class WishlistController {
 
         final var wishlist = service.findWishlist(username, wishlistName);
         model.addAttribute("wishlist", wishlist);
+        model.addAttribute("isEdit", true);
 
-        return "edit-wishlist"; // udfylder en form og sender til /update endpoint
+        return "wishlist-form";
     }
 
     @GetMapping("/add")
     public String addWishlist(Model model, HttpSession session) {
         if (!isLoggedIn(session)) {
-            return "redirect:/login";
+            return "redirect:/wishlist/login";
         }
-        var loggedInUser = (User) session.getAttribute("user");
         var wishlist = new Wishlist();
         wishlist.setWishes(new ArrayList<>(List.of(new Wish())));
-        wishlist.setUserId(loggedInUser.getId());
+        var loggedInUser = (User) session.getAttribute("user");
 
+        model.addAttribute("user", loggedInUser);
         model.addAttribute("wishlist", wishlist);
-        return "add-wishlist";
+        model.addAttribute("isEdit", false);
+        return "wishlist-form";
     }
 
     @PostMapping("/save")
@@ -138,36 +144,66 @@ public class WishlistController {
             throw new UnauthenticatedException("You need to be logged in to create wishlists");
         }
         var loggedInUser = (User) session.getAttribute("user");
+        wishlist.setUserId(loggedInUser.getId());
         var savedWishlist = service.saveWishlist(wishlist);
 
-        return "redirect:/" + loggedInUser.getUsername() + "/" + savedWishlist.getName();
+        String encodedName = URLEncoder.encode(savedWishlist.getName(), StandardCharsets.UTF_8); // ikke testet, men skulle fix problemer med æøå
+        return "redirect:/wishlist/" + loggedInUser.getUsername() + "/" + encodedName;
     }
 
     @PostMapping("/update")
     public String updateWishlist(@ModelAttribute Wishlist wishlist, HttpSession session) {
-        if (isNotOwner(session, wishlist.getUserId())) {
-            throw new ForbiddenAccessException("You are not allowed to update this wishlist");
-        }
         if (!isLoggedIn(session)) {
             throw new UnauthenticatedException("You need to be logged in to update a wishlist");
         }
+        if (isNotOwner(session, wishlist.getUserId())) {
+            throw new ForbiddenAccessException("You are not allowed to update this wishlist");
+        }
         var user = (User) session.getAttribute("user");
-
         service.updateWishlist(user.getUsername(), wishlist);
-        return "redirect:/";
+        return "redirect:/wishlist/" + user.getUsername();
+
     }
 
     @PostMapping("/delete")
     public String deleteWishlist(@ModelAttribute Wishlist wishlist, HttpSession session) {
+        if (!isLoggedIn(session)) {
+            throw new UnauthenticatedException("You need to be logged in to delete a wishlist");
+        }
         if (isNotOwner(session, wishlist.getUserId())) {
             throw new ForbiddenAccessException("You are not allowed to delete this wishlist");
         }
-
+        var user = (User) session.getAttribute("user");
         service.deleteWishlist(wishlist);
-        return "redirect:/";
+        return "redirect:/wishlist/" + user.getUsername();
+    }
+
+    @PostMapping("/delete-user")
+    public String deleteUser(@ModelAttribute User user, HttpSession session) {
+        if (!isLoggedIn(session)) {
+            throw new UnauthenticatedException("You need to be logged in to delete your account");
+        }
+        if (isNotOwner(session, user.getId())) {
+            throw new ForbiddenAccessException("You are not allowed to delete this account");
+        }
+
+        service.deleteUser(user);
+        session.invalidate();
+        return "redirect:/wishlist/login";
     }
 
     // hjælpe metode
+
+    private boolean isLoggedIn(HttpSession session) {
+        return session.getAttribute("user") != null;
+    }
+
+    private boolean isOwner(HttpSession session, String username) {
+        if (!isLoggedIn(session))
+            return false;
+        var loggedInUser = (User) session.getAttribute("user");
+        return loggedInUser.getUsername().equals(username);
+    }
 
     private boolean isNotOwner(HttpSession session, String username) {
         if (!isLoggedIn(session))
@@ -181,11 +217,5 @@ public class WishlistController {
             return true;
         var loggedInUser = (User) session.getAttribute("user");
         return loggedInUser.getId() != userId;
-    }
-
-    @PostMapping
-    public String deleteUSer(@ModelAttribute User user) {
-        service.deleteUser(user);
-        return "redirect:/";
     }
 }

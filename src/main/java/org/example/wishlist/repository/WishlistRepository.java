@@ -6,15 +6,16 @@ import java.util.List;
 import java.util.Objects;
 
 import org.example.wishlist.exception.InvalidCredentialsException;
-import org.example.wishlist.exception.InvalidInputException;
 import org.example.wishlist.model.User;
 import org.example.wishlist.model.Wish;
 import org.example.wishlist.model.Wishlist;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public class WishlistRepository {
@@ -25,6 +26,7 @@ public class WishlistRepository {
         this.template = template;
     }
 
+    @Transactional
     public Wishlist saveWishlist(Wishlist wishlist) {
         final KeyHolder keyHolder = new GeneratedKeyHolder();
         final String insertWishlist = """
@@ -38,16 +40,16 @@ public class WishlistRepository {
             ps.setInt(2, wishlist.getUserId());
             return ps;
         }, keyHolder);
-        wishlist.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
+        final int wishlistId = Objects.requireNonNull(keyHolder.getKey()).intValue();
 
         for (Wish wish : wishlist.getWishes()) {
-            saveWish(wish, wishlist.getId());
+            saveWish(wish, wishlistId);
         }
         return wishlist;
     }
 
+    @Transactional
     public void saveWish(Wish wish, int wishlistId) {
-        wish.setName(wish.getName().trim());
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         final String insertWishSql = """
@@ -66,7 +68,7 @@ public class WishlistRepository {
                     Statement.RETURN_GENERATED_KEYS
             );
             ps.setString(1, wish.getLink());
-            ps.setString(2, wish.getName());
+            ps.setString(2, wish.getName().trim());
             ps.setDouble(3, wish.getPrice());
             return ps;
         }, keyHolder);
@@ -76,6 +78,7 @@ public class WishlistRepository {
         template.update(insertWishlistWish, wishlistId, wishId);
     }
 
+    @Transactional
     public boolean deleteWishlist(Wishlist wishlist) {
         final String sql = """
                 DELETE FROM wishlist
@@ -108,28 +111,31 @@ public class WishlistRepository {
 
     public User login(String username, String password) {
         final String sql = """
-                SELECT id, username, password, email
+                SELECT id, username, password
                 FROM users
                 WHERE username = ?
                 """;
         final RowMapper<User> userRowMapper = (rs, rowNum) ->
                 new User(rs.getInt("id"),
                         rs.getString("username"),
-                        rs.getString("password"),
-                        rs.getString("email"));
-        final var user = template.queryForObject(sql, userRowMapper, username);
-
-        if (!password.equals(user.getPassword())) {
+                        rs.getString("password"));
+        try {
+            var user = template.queryForObject(sql, userRowMapper, username);
+            if (!password.equals(user.getPassword())) {
+                throw new InvalidCredentialsException("Invalid username or password");
+            }
+            user.setPassword(null);
+            return user;
+        } catch (EmptyResultDataAccessException e) {
             throw new InvalidCredentialsException("Invalid username or password");
         }
-        user.setPassword(null);
-        return user;
     }
 
+    @Transactional
     public User registerUser(User user) {
         final String sql = """
-                INSERT INTO users (username, password, email)
-                VALUES (?, ?, ?)
+                INSERT INTO users (username, password)
+                VALUES (?, ?)
                 """;
 
         final KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -138,35 +144,30 @@ public class WishlistRepository {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, user.getUsername());
             ps.setString(2, user.getPassword());
-            ps.setString(3, user.getEmail());
             return ps;
         }, keyHolder);
 
-        final int id = Objects.requireNonNull(keyHolder.getKey()).intValue();
-        user.setId(id);
+        user.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
 
-        return findUser(user.getUsername());
+        return user;
     }
 
     public boolean deleteUser(User user) {
-        String sql = "DELTE *FROM users " +
-                " WHERE user.id = ?";
-        return template.update(sql, user.getId()) > 0;
+        return template.update("DELTE * FROM users  WHERE user.id = ?", user.getId()) > 0;
     }
 
+    @Transactional
     public User findUser(String username) {
         final String sql = """
                 SELECT u.id,
-                       u.username,
-                       u.email
+                       u.username
                 FROM users u
                 WHERE u.username = ?
                 """;
         final RowMapper<User> rowMapper = (rs, rowNum) -> {
             final User user = new User(
                     rs.getInt("id"),
-                    rs.getString("username"),
-                    rs.getString("email"));
+                    rs.getString("username"));
             user.setWishlists(findWishlists(user)); // løsning er ikke optimal
             return user;
         };
@@ -183,8 +184,8 @@ public class WishlistRepository {
                 WHERE username = ?
                 """;
 
-        int count = Objects.requireNonNull(template.queryForObject(sql, Integer.class, username));
-        return count > 0;
+        Integer count = template.queryForObject(sql, Integer.class, username);
+        return count != null && count > 0;
     }
 
     private List<Wishlist> findWishlists(User user) {

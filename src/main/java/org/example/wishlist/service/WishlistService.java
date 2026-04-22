@@ -14,6 +14,10 @@ public class WishlistService {
 
     private final WishlistRepository repository;
 
+    public WishlistService(WishlistRepository repository) {
+        this.repository = repository;
+    }
+
     public User userLogin(String username, String password) {
         if (username == null || password == null) {
             throw new InvalidInputException("Username or password cannot be null");
@@ -26,17 +30,6 @@ public class WishlistService {
             throw new UserAlreadyExistsException("User already exists");
         }
         return repository.registerUser(user);
-    }
-
-    public void forgotCredentials(String email) {
-        // beep boop
-        // gider slet ik engang tænke på hvordan man ville implementere det her fis
-        // beep boop
-        // send mail til bruger med éngangs adgangskode eller noget
-    }
-
-    public WishlistService(WishlistRepository repository) {
-        this.repository = repository;
     }
 
     public List<Wishlist> findUsersWishlists(String username) {

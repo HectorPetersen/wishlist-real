@@ -32,8 +32,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4">
     <span class="navbar-brand">🎁 Wishlist</span>
     <div class="ms-auto d-flex align-items-center gap-3">
-        <span class="text-white" th:text="'Hej, ' + ${user.username} + '!'"></span>
-        <a href="/login" class="btn btn-outline-light btn-sm">Log ud</a>
+        <a href="/wishlist/logout" class="btn btn-outline-light btn-sm">Log ud</a>
     </div>
 </nav>
 
@@ -41,23 +40,28 @@
 
     <!-- Header row -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold mb-0">Mine ønskelister</h2>
-        <a href="/add" class="btn btn-dark">
+        <h2 class="fw-bold mb-0" th:text="${username} + 's ønskelister'"></h2>
+        <a th:if="${isOwner}" th:href="@{/wishlist/add}" class="btn btn-dark">
             ➕ Tilføj ønskeliste
         </a>
     </div>
 
     <!-- Empty state -->
     <div th:if="${#lists.isEmpty(wishlists)}" class="text-center py-5">
-        <p class="text-muted fs-5">Du har ingen ønskelister endnu.</p>
-        <a href="/add" class="btn btn-dark mt-2">Opret din første ønskeliste</a>
+        <div th:if="${isOwner}">
+            <p class="text-muted fs-5">Du har ingen ønskelister endnu.</p>
+            <a th:href="@{/wishlist/add}" class="btn btn-dark mt-2">Opret din første ønskeliste</a>
+        </div>
+        <div th:unless="${isOwner}">
+            <p class="text-muted fs-5"
+               th:text="${username} + ' har ingen ønskelister endnu.'"></p>
+        </div>
     </div>
 
     <!-- Wishlist cards -->
     <div class="row g-4" th:if="${not #lists.isEmpty(wishlists)}">
         <div class="col-sm-6 col-md-4 col-lg-3" th:each="wishlist : ${wishlists}">
-            <a th:href="@{/{username}/{name}(username=${user.username}, name=${wishlist.name})}"
-               class="text-decoration-none text-dark">
+            <a th:href="@{/wishlist/{username}/{name}(username=${username}, name=${wishlist.name})}">
                 <div class="card wishlist-card h-100 p-3 text-center shadow-sm">
                     <div class="card-body">
                         <div class="card-icon mb-3">🎁</div>
