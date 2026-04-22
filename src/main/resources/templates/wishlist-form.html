@@ -13,9 +13,10 @@
     <div class="ms-auto d-flex align-items-center gap-3">
 
         <div th:if="${user != null}" class="d-flex align-items-center gap-3">
-            <span class="text-white"
-                  th:text="'Hej, ' + ${user.username} + '!'"></span>
-            <a th:href="@{/wishlist/logout}" class="btn btn-outline-light btn-sm">Log ud</a></div>
+            <span class="text-white" th:text="'Hej, ' + ${user.username} + '!'"></span>
+            <a th:href="@{/wishlist/profile}" class="btn btn-outline-light btn-sm">👤 Profil</a>
+            <a th:href="@{/wishlist/logout}" class="btn btn-outline-light btn-sm">Log ud</a>
+        </div>
 
         <div th:if="${user == null}" class="d-flex align-items-center gap-2">
             <a th:href="@{/wishlist/login}" class="btn btn-outline-light btn-sm">Log ind</a>
