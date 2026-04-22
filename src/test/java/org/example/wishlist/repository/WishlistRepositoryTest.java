@@ -5,9 +5,9 @@ import org.example.wishlist.model.Wishlist;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
-
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,6 +21,9 @@ class WishlistRepositoryTest {
 
     @Autowired
    private WishlistRepository repo;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Test
     void saveWishlist() {
@@ -79,5 +82,24 @@ class WishlistRepositoryTest {
 
     @Test
     void updateWish() {
+        Wish wish = new Wish();
+        wish.setName("Original Name");
+        wish.setLink("http://link.com");
+        wish.setPrice(100.0);
+
+        Wishlist wishlist = new Wishlist();
+        wishlist.setName("Test Update Wishlist");
+        wishlist.setUserId(1);
+        wishlist.setWishes(List.of(wish));
+
+        Wishlist savedWishlist = repo.saveWishlist(wishlist);
+        Wish savedWish = savedWishlist.getWishes().get(0);
+
+        savedWish.setName("Updated Name");
+        repo.updateWish(savedWish);
+
+        String sql = "SELECT name FROM wish WHERE id = ?";
+        String updatedName = jdbcTemplate.queryForObject(sql, String.class, savedWish.getId());
+        assertThat(updatedName).isEqualTo("Updated Name");
     }
 }

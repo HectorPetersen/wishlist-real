@@ -297,7 +297,7 @@ public class WishlistRepository {
         Integer count = template.queryForObject(
                 checkSql,
                 Integer.class,
-                wish.getLink(),
+                wish.getName(),
                 wish.getId()
         );
 
@@ -311,7 +311,7 @@ public class WishlistRepository {
                 WHERE id = ?
                 """;
 
-        int rows = template.update(updateSql, wish.getLink(), wish.getId());
+        int rows = template.update(updateSql, wish.getName(), wish.getId());
 
         if (rows == 0) {
             throw new RuntimeException("Wish not found");
