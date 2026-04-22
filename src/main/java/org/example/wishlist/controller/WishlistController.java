@@ -97,6 +97,7 @@ public class WishlistController {
         var wishlists = service.findUsersWishlists(username);
         model.addAttribute("wishlists", wishlists);
         model.addAttribute("username", username);
+        model.addAttribute("user", session.getAttribute("user"));
         return "user-wishlists";
     }
 
@@ -121,6 +122,7 @@ public class WishlistController {
         model.addAttribute("wishlist", service.findWishlist(username, wishlistName));
         model.addAttribute("username", username);
         model.addAttribute("isOwner", isOwner(session, username));
+        model.addAttribute("user", session.getAttribute("user"));
         return "user-wishlist";
     }
 
@@ -134,6 +136,7 @@ public class WishlistController {
         final var wishlist = service.findWishlist(username, wishlistName);
         model.addAttribute("wishlist", wishlist);
         model.addAttribute("isEdit", true);
+        model.addAttribute("user", session.getAttribute("user"));
 
         return "wishlist-form";
     }

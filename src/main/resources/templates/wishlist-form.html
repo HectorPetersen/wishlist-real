@@ -31,6 +31,9 @@
         th:text="${isEdit} ? 'Rediger ønskeliste' : 'Tilføj ønskeliste'"></h1>
 
     <form th:action="${isEdit} ? '/wishlist/update' : '/wishlist/save'" method="post">
+        <input type="hidden" th:field="*{userId}">
+        <input type="hidden" th:field="*{id}">
+
         <!-- Navn på liste -->
         <div class="mb-4">
             <label class="form-label">Navn på ønskeliste</label>
