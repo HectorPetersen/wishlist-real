@@ -186,8 +186,12 @@ public class WishlistController {
         }
         var user = (User) session.getAttribute("user");
         service.updateWishlist(user.getUsername(), wishlist);
-        return "redirect:/wishlist/" + user.getUsername();
 
+        String encodedName = org.springframework.web.util.UriUtils.encodePathSegment(
+                wishlist.getName().trim(),
+                StandardCharsets.UTF_8
+        );
+        return "redirect:/wishlist/" + user.getUsername() + "/" + encodedName;
     }
 
     @PostMapping("/delete")
