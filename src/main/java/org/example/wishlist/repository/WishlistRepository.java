@@ -167,7 +167,15 @@ public class WishlistRepository {
     }
 
     public boolean deleteUser(User user) {
-        return template.update("DELTE * FROM users  WHERE user.id = ?", user.getId()) > 0;
+        template.update("""
+                    DELETE w
+                           FROM wish w
+                    JOIN wishlist_wish ww ON ww.wish_id = w.id
+                    JOIN wishlist wl ON wl.id = ww.wishlist_id
+                    WHERE wl.user_id = ?
+                """, user.getId()); // sletter wishes brugeren har lavet
+
+        return template.update("DELETE FROM users WHERE id = ?", user.getId()) > 0;
     }
 
     @Transactional
