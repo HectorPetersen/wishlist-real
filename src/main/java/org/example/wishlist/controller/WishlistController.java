@@ -1,6 +1,5 @@
 package org.example.wishlist.controller;
 
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -86,6 +85,16 @@ public class WishlistController {
             model.addAttribute("registrationError", true);
             return "register-page";
         }
+    }
+
+    @GetMapping("/profile")
+    public String profilePage(HttpSession session, Model model) {
+        if (!isLoggedIn(session)) {
+            return "redirect:/wishlist/login";
+        }
+        var user = (User) session.getAttribute("user");
+        model.addAttribute("user", user);
+        return "user-profile";
     }
 
     @GetMapping("/{username}")

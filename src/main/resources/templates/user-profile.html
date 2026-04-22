@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="da" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Min profil</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4">
+    <a class="navbar-brand" th:href="@{/wishlist/{username}(username=${user.username})}">🎁 Wishlist</a>
+    <div class="ms-auto d-flex align-items-center gap-3">
+        <span class="text-white" th:text="'Hej, ' + ${user.username} + '!'"></span>
+        <a th:href="@{/wishlist/profile}" class="btn btn-outline-light btn-sm">👤 Profil</a>
+        <a th:href="@{/wishlist/logout}" class="btn btn-outline-light btn-sm">Log ud</a>
+    </div>
+</nav>
+
+<div class="container mt-5" style="max-width: 400px;">
+    <h2 class="fw-bold mb-4">Min profil</h2>
+
+    <form th:action="@{/wishlist/delete-user}" method="post">
+        <input type="hidden" name="id" th:value="${user.id}">
+        <button type="submit" class="btn btn-danger w-100"
+                onclick="return confirm('Er du sikker? Dette kan ikke fortrydes.')">
+            🗑 Slet bruger
+        </button>
+    </form>
+</div>
+
+</body>
+</html>
